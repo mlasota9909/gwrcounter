@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Counter with High-Precision Timer</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    background-color: black;
+    color: red;
+    font-family: 'Share Tech Mono', monospace;
+    text-align: center;
+  }
+
+  .container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  .counter-box {
+    border: 5px solid red;
+    padding: 20px 40px;
+    margin: 20px 0;
+    font-size: 96px;
+    display: inline-block;
+    transition: color 0.3s ease;
+  }
+
+  .timer {
+    font-size: 48px;
+    letter-spacing: 2px;
+    margin: 20px 0;
+    min-width: 20ch;
+    text-align: center;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .big-button {
+    width: 50vw;
+    height: 50vh;
+    font-size: 48px;
+    cursor: pointer;
+    background-color: black;
+    color: red;
+    border: 3px solid red;
+  }
+
+  .big-button:hover {
+    background-color: #330000;
+  }
+
+  .stop-button, .reset-button {
+    margin-top: 20px;
+    font-size: 36px;
+    padding: 10px 30px;
+    cursor: pointer;
+    background-color: black;
+    color: red;
+    border: 3px solid red;
+  }
+
+  .stop-button:hover, .reset-button:hover {
+    background-color: #330000;
+  }
+
+  .pulse-green {
+    animation: pulse-green 0.3s ease;
+  }
+
+  @keyframes pulse-green {
+    0% { color: red; }
+    50% { color: lime; }
+    100% { color: red; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Counter with High-Precision Timer</h1>
+  <div class="counter-box" id="count">0</div>
+  <div class="timer" id="timer">00:00.000</div>
+  <button class="big-button" id="incrementBtn">+1</button>
+  <button class="stop-button" id="stopBtn">STOP</button>
+  <button class="reset-button" id="resetBtn">RESET</button>
+</div>
+
+<script>
+  let count = 0;
+  let startTime = null;
+  let timerInterval = null;
+
+  const countEl = document.getElementById('count');
+  const timerEl = document.getElementById('timer');
+  const btn = document.getElementById('incrementBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  function updateTimerDisplay(elapsed) {
+    const totalSeconds = elapsed / 1000;
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    const milliseconds = Math.floor(elapsed % 1000);
+
+    const mm = minutes.toString().padStart(2, '0');
+    const ss = seconds.toString().padStart(2, '0');
+    const xxx = milliseconds.toString().padStart(3, '0');
+
+    timerEl.textContent = `${mm}:${ss}.${xxx}`;
+  }
+
+  function increment() {
+    count++;
+    countEl.textContent = count;
+
+    // Add pulse animation
+    countEl.classList.remove('pulse-green');
+    void countEl.offsetWidth;  // trigger reflow
+    countEl.classList.add('pulse-green');
+
+    if (!startTime) {
+      startTime = performance.now();
+      timerInterval = setInterval(() => {
+        const now = performance.now();
+        const elapsed = now - startTime;
+        updateTimerDisplay(elapsed);
+      }, 10);
+    }
+  }
+
+  btn.addEventListener('click', increment);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space') {
+      e.preventDefault(); // prevent page scroll
+      increment();
+    }
+  });
+
+  stopBtn.addEventListener('click', () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  });
+
+  resetBtn.addEventListener('click', () => {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    count = 0;
+    startTime = null;
+    countEl.textContent = '0';
+    timerEl.textContent = '00:00.000';
+  });
+</script>
+
+</body>
+</html>
