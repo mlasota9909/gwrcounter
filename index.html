@@ -23,17 +23,21 @@
     align-items: center;
   }
 
+  .common-width {
+    width: 85vw;
+    box-sizing: border-box;
+  }
+
   .counter-box {
     border: 5px solid red;
-    padding: 20px 40px;
+    padding: 20px 0;
     margin: 20px 0;
-    font-size: 96px;
+    font-size: 190px; /* 173px + 10% */
     display: inline-block;
-    transition: color 0.3s ease;
   }
 
   .timer {
-    font-size: 48px;
+    font-size: 79px; /* 72px + 10% */
     letter-spacing: 2px;
     margin: 20px 0;
     min-width: 20ch;
@@ -43,8 +47,7 @@
   }
 
   .big-button {
-    width: 50vw;
-    height: 50vh;
+    height: 15vh;
     font-size: 48px;
     cursor: pointer;
     background-color: black;
@@ -56,17 +59,38 @@
     background-color: #330000;
   }
 
-  .stop-button, .reset-button {
+  .bottom-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 85vw;
     margin-top: 20px;
+  }
+
+  .stop-button {
+    flex: 1;
     font-size: 36px;
     padding: 10px 30px;
     cursor: pointer;
     background-color: black;
     color: red;
     border: 3px solid red;
+    margin-right: 20px;
   }
 
-  .stop-button:hover, .reset-button:hover {
+  .stop-button:hover {
+    background-color: #330000;
+  }
+
+  .reset-button {
+    font-size: 24px;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: black;
+    color: red;
+    border: 3px solid red;
+  }
+
+  .reset-button:hover {
     background-color: #330000;
   }
 
@@ -85,16 +109,19 @@
 
 <div class="container">
   <h1>Counter with High-Precision Timer</h1>
-  <div class="counter-box" id="count">0</div>
+  <div class="counter-box common-width" id="count">0</div>
   <div class="timer" id="timer">00:00.000</div>
-  <button class="big-button" id="incrementBtn">+1</button>
-  <button class="stop-button" id="stopBtn">STOP</button>
-  <button class="reset-button" id="resetBtn">RESET</button>
+  <button class="big-button common-width" id="incrementBtn">+1</button>
+  <div class="bottom-buttons">
+    <button class="stop-button" id="stopBtn">STOP</button>
+    <button class="reset-button" id="resetBtn">RESET</button>
+  </div>
 </div>
 
 <script>
   let count = 0;
   let startTime = null;
+  let elapsedWhenStopped = 0;
   let timerInterval = null;
 
   const countEl = document.getElementById('count');
@@ -117,22 +144,25 @@
     timerEl.textContent = `${mm}:${ss}.${xxx}`;
   }
 
+  function startTimer() {
+    startTime = performance.now();
+    timerInterval = setInterval(() => {
+      const now = performance.now();
+      const elapsed = now - startTime + elapsedWhenStopped;
+      updateTimerDisplay(elapsed);
+    }, 10);
+  }
+
   function increment() {
     count++;
     countEl.textContent = count;
 
-    // Add pulse animation
     countEl.classList.remove('pulse-green');
-    void countEl.offsetWidth;  // trigger reflow
+    void countEl.offsetWidth;
     countEl.classList.add('pulse-green');
 
-    if (!startTime) {
-      startTime = performance.now();
-      timerInterval = setInterval(() => {
-        const now = performance.now();
-        const elapsed = now - startTime;
-        updateTimerDisplay(elapsed);
-      }, 10);
+    if (!timerInterval) {
+      startTimer();
     }
   }
 
@@ -140,7 +170,7 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.code === 'Space') {
-      e.preventDefault(); // prevent page scroll
+      e.preventDefault(); 
       increment();
     }
   });
@@ -149,6 +179,7 @@
     if (timerInterval) {
       clearInterval(timerInterval);
       timerInterval = null;
+      elapsedWhenStopped += performance.now() - startTime;
     }
   });
 
@@ -159,6 +190,7 @@
     }
     count = 0;
     startTime = null;
+    elapsedWhenStopped = 0;
     countEl.textContent = '0';
     timerEl.textContent = '00:00.000';
   });
